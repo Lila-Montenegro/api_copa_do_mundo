@@ -5,9 +5,10 @@ import newspapersBrazil from "../scrappingData/newspapersDataBrazil";
 
 export default class NewsService {
   async getNews(language?: string) {
-    const papers = language ? newspapersBrazil : newspapers;
+    const papers = language == "pt-br" ? newspapersBrazil : newspapers;
 
-    const news = await Promise.all(
+    const news = [];
+    await Promise.all(
       papers.map(async (newspaper) => {
         const { data: html } = await axios.get(newspaper.url);
         const $ = load(html);
@@ -21,40 +22,41 @@ export default class NewsService {
             url,
             newspaperName: newspaper.name,
           };
+          news.push(article);
         });
-        //está pegando só 1 artigo
-
-        return article;
       })
     );
 
-    const filtered = news.filter((article) => article != undefined);
-
-    return filtered;
+    return news.filter((article) => article != undefined);
   }
 
-  async getNewsByPaper(newspaperName: string, language?: string) {
-    const papers = language ? newspapersBrazil : newspapers;
+  async getNewsByPaper(language: string, newspaperName: string) {
+    const papers = language == "pt-br" ? newspapersBrazil : newspapers;
 
     const filteredNewspapers = papers.filter(
       (newspaper) => newspaper.name == newspaperName
     );
+
     const news = [];
 
-    for (const newspaper of filteredNewspapers) {
-      const { data: html } = await axios.get(newspaper.url);
-      const $ = load(html);
+    await Promise.all(
+      filteredNewspapers.map(async (newspaper) => {
+        const { data: html } = await axios.get(newspaper.url);
+        const $ = load(html);
 
-      $(`a:contains("${newspaper.keyWord}")`, html).each(function () {
-        const title = $(this).text();
-        const url = $(this).attr("href");
-        news.push({
-          title,
-          url,
-          newspaperName: newspaper.name,
+        let article: any;
+        $(`a:contains(${newspaper.keyWord})`, html).each(function () {
+          const title = $(this).text();
+          const url = $(this).attr("href");
+          article = {
+            title,
+            url,
+            newspaperName: newspaper.name,
+          };
+          news.push(article);
         });
-      });
-    }
+      })
+    );
 
     return news;
   }
