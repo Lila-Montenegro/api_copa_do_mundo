@@ -21,29 +21,31 @@ export default class PlayerService {
   async getAllPlayers() {
     const players = [];
 
-    for (const country of countriesData) {
-      const { data: html } = await axios.get(country.url);
-      const $ = load(html);
+    await Promise.all(
+      countriesData.map(async (country) => {
+        const { data: html } = await axios.get(country.url);
+        const $ = load(html);
 
-      $("div.playerinfo-top", html).each(function () {
-        const img = $(this)
-          .children(".playerinfo-img")
-          .children("img")
-          .attr("src");
-        const info = $(this).children(".playerinfo-name").text();
+        $("div.playerinfo-top", html).each(function () {
+          const img = $(this)
+            .children(".playerinfo-img")
+            .children("img")
+            .attr("src");
+          const info = $(this).children(".playerinfo-name").text();
 
-        const { name, position } = getPlayerNameAndPosition(info);
+          const { name, position } = getPlayerNameAndPosition(info);
 
-        const player = {
-          name,
-          position,
-          image: baseUrl + img,
-          country: country.name,
-        };
+          const player = {
+            name,
+            position,
+            image: baseUrl + img,
+            country: country.name,
+          };
 
-        players.push(player);
-      });
-    }
+          players.push(player);
+        });
+      })
+    );
 
     return players;
   }
