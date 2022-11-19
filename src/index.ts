@@ -16,5 +16,5 @@ app.listen(port, () => {
 });
 
 app.get("/", (req: Request, res: Response) => {
-  return res.json({ message: "Welcome to World Cup Api!" });
+  return res.json({ message: "Welcome to the World Cup Api!" });
 });
